@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Sweetch</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f4f6fb;
+    color: #111827;
+    padding-bottom: 90px;
+  }
+
+  header {
+    background: #2563eb;
+    color: white;
+    padding: 22px 20px 18px;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 22px;
+  }
+
+  header p {
+    margin: 5px 0 0;
+    font-size: 13px;
+    opacity: .85;
+  }
+
+  .tabs {
+    display: flex;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 14px;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+  }
+
+  .tab.active {
+    color: #2563eb;
+    border-bottom-color: #2563eb;
+  }
+
+  .page {
+    display: none;
+    padding: 16px;
+  }
+
+  .page.active {
+    display: block;
+  }
+
+  .card {
+    background: white;
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.06);
+  }
+
+  .card h2 {
+    margin: 0 0 14px;
+    font-size: 16px;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    color: #6b7280;
+    margin: 12px 0 6px;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 13px;
+    font-size: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    background: #f9fafb;
+    font-family: inherit;
+  }
+
+  textarea {
+    min-height: 180px;
+    resize: vertical;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  button {
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 16px;
+    cursor: pointer;
+  }
+
+  .primary {
+    background: #2563eb;
+    color: white;
+  }
+
+  .danger {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  .warning {
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 13px;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  .result {
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.35;
+  }
+
+  .ok {
+    color: #16a34a;
+  }
+
+  .ko {
+    color: #dc2626;
+  }
+
+  .details {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  th, td {
+    padding: 10px 6px;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  th {
+    color: #1d4ed8;
+    background: #eef2ff;
+  }
+
+  .stats {
+    margin-top: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    line-height: 1.6;
+  }
+
+  .empty {
+    text-align: center;
+    color: #9ca3af;
+    padding: 20px 0;
+  }
+
+  .bottom-note {
+    text-align: center;
+    font-size: 12px;
+    color: #9ca3af;
+    padding: 10px;
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 100;
+    padding: 20px;
+  }
+
+  .modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-card {
+    background: white;
+    border-radius: 18px;
+    padding: 20px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-card h3 {
+    margin: 0 0 12px;
+    font-size: 17px;
+  }
+
+  .modal-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .modal-buttons button {
+    margin-top: 16px;
+  }
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Sweetch</h1>
+  <p>Calculateur d’autonomie local</p>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('calc')">Calculateur</div>
+  <div class="tab" onclick="showTab('data')">Données</div>
+</div>
+
+<div id="calc" class="page active">
+  <div class="card">
+    <h2>Paramètres</h2>
+
+    <label>Nombre de passagers</label>
+    <input type="number" id="passagers" value="1" min="1">
+
+    <label>Batterie disponible (%)</label>
+    <input type="number" id="batterie" value="100" min="0" max="100">
+
+    <label>Type de trajet</label>
+    <select id="mode">
+      <option value="aller">Aller</option>
+      <option value="aller_retour">Aller/retour</option>
+      <option value="taxi">Taxi</option>
+    </select>
+
+    <label>Distance de l’aller (km)</label>
+    <input type="number" id="distance" value="20" min="0" step="0.1">
+  </div>
+
+  <div class="card">
+    <h2>Résultat</h2>
+    <div id="result" class="result">—</div>
+    <div id="details" class="details"></div>
+  </div>
+</div>
+
+<div id="data" class="page">
+  <div id="storageWarning" class="warning" style="display:none">
+    ⚠️ Safari ne peut pas enregistrer automatiquement les données dans ce mode.<br>
+    Utilise « Sauvegarder les données » après chaque ajout.
+  </div>
+
+  <div class="card">
+    <h2>Ajouter une donnée</h2>
+
+    <label>Nombre de passagers</label>
+    <input type="number" id="new_passagers" min="1">
+
+    <label>Batterie avant (%)</label>
+    <input type="number" id="new_avant" min="0" max="100">
+
+    <label>Batterie après (%)</label>
+    <input type="number" id="new_apres" min="0" max="100">
+
+    <label>Distance parcourue (km)</label>
+    <input type="number" id="new_distance" min="0" step="0.1">
+
+    <button class="primary" onclick="addData()">Ajouter</button>
+  </div>
+
+  <div class="card">
+    <h2>Données enregistrées</h2>
+    <div id="tableContainer"></div>
+
+    <button class="primary" onclick="exportData()">Sauvegarder les données</button>
+
+    <button class="primary" onclick="openRestore()">Restaurer depuis un texte</button>
+
+    <button class="danger" onclick="deleteSelected()">Supprimer la sélection</button>
+
+    <div id="stats" class="stats"></div>
+  </div>
+</div>
+
+<div id="restoreModal" class="modal">
+  <div class="modal-card">
+    <h3>Restaurer une sauvegarde</h3>
+
+    <p style="font-size:13px;color:#6b7280;margin:0 0 12px;">
+      Colle ici le texte de sauvegarde généré par l’application.
+    </p>
+
+    <textarea
+      id="restoreText"
+      placeholder="Colle ici ta sauvegarde Sweetch…"
+    ></textarea>
+
+    <div class="modal-buttons">
+      <button class="primary" onclick="restoreFromText()">Restaurer</button>
+      <button class="danger" onclick="closeRestore()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-note">
+  Données enregistrées localement sur cet iPhone lorsque Safari le permet.
+</div>
+
+<script>
+let data = [];
+let selected = null;
+let storageAvailable = true;
+
+try {
+  data = JSON.parse(localStorage.getItem("sweetch_data") || "[]");
+
+  if (!Array.isArray(data)) {
+    data = [];
+  }
+} catch (e) {
+  storageAvailable = false;
+  data = [];
+}
+
+function save() {
+  try {
+    localStorage.setItem("sweetch_data", JSON.stringify(data));
+    storageAvailable = true;
+  } catch (e) {
+    storageAvailable = false;
+  }
+}
+
+function showTab(name) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+
+  if (name === "calc") {
+    document.querySelectorAll(".tab")[0].classList.add("active");
+    document.getElementById("calc").classList.add("active");
+  } else {
+    document.querySelectorAll(".tab")[1].classList.add("active");
+    document.getElementById("data").classList.add("active");
+  }
+
+  render();
+}
+
+function consumption(row) {
+  const distance = parseFloat(row.distance);
+  const diff = parseFloat(row.avant) - parseFloat(row.apres);
+
+  if (!distance || distance <= 0) return null;
+
+  return diff / distance;
+}
+
+function averages() {
+  let v1 = [];
+  let v2 = [];
+
+  data.forEach(row => {
+    const c = consumption(row);
+
+    if (!c || c <= 0) return;
+
+    if (parseInt(row.passagers) === 1) v1.push(c);
+    if (parseInt(row.passagers) === 2) v2.push(c);
+  });
+
+  const moy1 = v1.length ? v1.reduce((a, b) => a + b, 0) / v1.length : null;
+  const moy2 = v2.length ? v2.reduce((a, b) => a + b, 0) / v2.length : null;
+
+  return [moy1, moy2];
+}
+
+function addData() {
+  const passagers = parseInt(document.getElementById("new_passagers").value);
+  const avant = parseFloat(document.getElementById("new_avant").value);
+  const apres = parseFloat(document.getElementById("new_apres").value);
+  const distance = parseFloat(document.getElementById("new_distance").value);
+
+  if (!passagers || passagers < 1) {
+    alert("Le nombre de passagers doit être au moins 1.");
+    return;
+  }
+
+  if (isNaN(avant) || isNaN(apres) || isNaN(distance)) {
+    alert("Veuillez remplir tous les champs.");
+    return;
+  }
+
+  if (apres < 0 || apres > avant || avant > 100) {
+    alert("La batterie après doit être entre 0 et la batterie avant.");
+    return;
+  }
+
+  if (distance <= 0) {
+    alert("La distance doit être supérieure à 0.");
+    return;
+  }
+
+  data.push({
+    passagers: passagers,
+    avant: avant,
+    apres: apres,
+    distance: distance
+  });
+
+  save();
+  render();
+
+  document.getElementById("new_passagers").value = "";
+  document.getElementById("new_avant").value = "";
+  document.getElementById("new_apres").value = "";
+  document.getElementById("new_distance").value = "";
+}
+
+function deleteSelected() {
+  if (selected === null) {
+    alert("Sélectionne d’abord une ligne.");
+    return;
+  }
+
+  data.splice(selected, 1);
+  selected = null;
+
+  save();
+  render();
+}
+
+function selectRow(index) {
+  selected = index;
+  render();
+}
+
+function exportData() {
+  if (data.length === 0) {
+    alert("Il n’y a aucune donnée à sauvegarder.");
+    return;
+  }
+
+  const json = JSON.stringify(data, null, 2);
+
+  openSaveModal(json);
+}
+
+function openSaveModal(json) {
+  document.getElementById("saveText").value = json;
+  document.getElementById("saveModal").classList.add("active");
+}
+
+function closeSaveModal() {
+  document.getElementById("saveModal").classList.remove("active");
+}
+
+function copySaveText() {
+  const text = document.getElementById("saveText").value;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Sauvegarde copiée. Colle-la dans Notes, Mail ou Messages.");
+    }).catch(() => {
+      alert("Sélectionne et copie manuellement le texte affiché.");
+    });
+  } else {
+    alert("Sélectionne et copie manuellement le texte affiché.");
+  }
+}
+
+function openRestore() {
+  document.getElementById("restoreText").value = "";
+  document.getElementById("restoreModal").classList.add("active");
+}
+
+function closeRestore() {
+  document.getElementById("restoreModal").classList.remove("active");
+}
+
+function restoreFromText() {
+  const text = document.getElementById("restoreText").value.trim();
+
+  if (!text) {
+    alert("Colle d’abord ta sauvegarde.");
+    return;
+  }
+
+  try {
+    const imported = JSON.parse(text);
+
+    if (!Array.isArray(imported)) {
+      alert("Cette sauvegarde n’est pas valide.");
+      return;
+    }
+
+    const valid = imported.every(item =>
+      item &&
+      item.passagers !== undefined &&
+      item.avant !== undefined &&
+      item.apres !== undefined &&
+      item.distance !== undefined
+    );
+
+    if (!valid) {
+      alert("Cette sauvegarde ne contient pas des données Sweetch valides.");
+      return;
+    }
+
+    if (data.length > 0) {
+      const replace = confirm(
+        "Remplacer les données actuelles par celles de la sauvegarde ?\n\n" +
+        "Annuler = ajouter les données à la suite."
+      );
+
+      data = replace ? imported : data.concat(imported);
+    } else {
+      data = imported;
+    }
+
+    selected = null;
+    save();
+    render();
+    closeRestore();
+
+    alert("Sauvegarde restaurée.");
+  } catch (e) {
+    alert("Le texte collé n’est pas une sauvegarde valide.");
+  }
+}
+
+function render() {
+  const container = document.getElementById("tableContainer");
+  const stats = document.getElementById("stats");
+  const warning = document.getElementById("storageWarning");
+
+  warning.style.display = storageAvailable ? "none" : "block";
+
+  if (data.length === 0) {
+    container.innerHTML = '<div class="empty">Aucune donnée enregistrée.</div>';
+    stats.innerHTML = storageAvailable ? "" : "Aucune donnée enregistrée.";
+  } else {
+    let html = "<table><tr><th>Pass.</th><th>Avant</th><th>Après</th><th>km</th><th>%/km</th></tr>";
+
+    data.forEach((row, i) => {
+      const c = consumption(row);
+      const style = selected === i ? 'style="background:#dbeafe"' : "";
+
+      html += `
+        <tr ${style} onclick="selectRow(${i})">
+          <td>${row.passagers}</td>
+          <td>${row.avant}</td>
+          <td>${row.apres}</td>
+          <td>${row.distance}</td>
+          <td>${c ? c.toFixed(4) : "—"}</td>
+        </tr>
+      `;
+    });
+
+    html += "</table>";
+    container.innerHTML = html;
+
+    const [moy1, moy2] = averages();
+
+    stats.innerHTML = `
+      Consommation moyenne 1 passager : ${moy1 ? moy1.toFixed(4) + " %/km" : "Pas assez de données"}<br>
+      Consommation moyenne 2 passagers : ${moy2 ? moy2.toFixed(4) + " %/km" : "Pas assez de données"}
+    `;
+  }
+
+  calculate();
+}
+
+function calculate() {
+  const passagers = parseInt(document.getElementById("passagers").value);
+  const batterie = parseFloat(document.getElementById("batterie").value);
+  const distanceAller = parseFloat(document.getElementById("distance").value);
+  const mode = document.getElementById("mode").value;
+
+  const result = document.getElementById("result");
+  const details = document.getElementById("details");
+
+  const [moy1, moy2] = averages();
+
+  let conso = null;
+  let modeTxt = "";
+  let distanceTotale = distanceAller;
+
+  if (mode === "taxi") {
+    if (moy1 === null || moy2 === null) {
+      result.className = "result ko";
+      result.innerHTML = "Ajoute au moins un trajet avec 1 passager<br>et un trajet avec 2 passagers.";
+      details.innerHTML = "";
+      return;
+    }
+
+    conso = (moy1 + moy2) / 2;
+    distanceTotale = distanceAller * 2;
+
+    modeTxt = (
+      "Taxi<br>" +
+      "Aller : 1 passager<br>" +
+      "Retour : 2 passagers<br>" +
+      "Distance aller : " + distanceAller.toFixed(1) + " km<br>" +
+      "Distance totale : " + distanceTotale.toFixed(1) + " km"
+    );
+  }
+
+  if (mode === "aller_retour") {
+    if (passagers === 1) {
+      conso = moy1;
+    } else if (passagers === 2) {
+      conso = moy2;
+    } else {
+      conso = moy1 !== null ? moy1 : moy2;
+    }
+
+    if (conso === null) {
+      result.className = "result ko";
+      result.innerHTML = "Pas assez de données pour ce nombre de passagers.";
+      details.innerHTML = "";
+      return;
+    }
+
+    distanceTotale = distanceAller * 2;
+
+    modeTxt = (
+      "Aller/retour avec " + passagers + " passager(s)<br>" +
+      "Distance aller : " + distanceAller.toFixed(1) + " km<br>" +
+      "Distance totale : " + distanceTotale.toFixed(1) + " km"
+    );
+  }
+
+  if (mode === "aller") {
+    if (passagers === 1) {
+      conso = moy1;
+    } else if (passagers === 2) {
+      conso = moy2;
+    } else {
+      conso = moy1 !== null ? moy1 : moy2;
+    }
+
+    if (conso === null) {
+      result.className = "result ko";
+      result.innerHTML = "Pas assez de données pour ce nombre de passagers.";
+      details.innerHTML = "";
+      return;
+    }
+
+    distanceTotale = distanceAller;
+
+    modeTxt = "Aller avec " + passagers + " passager(s)";
+  }
+
+  const distanceMax = (batterie / conso) * 0.90;
+  const faisable = distanceTotale <= distanceMax;
+
+  result.className = "result " + (faisable ? "ok" : "ko");
+  result.innerHTML = `
+    Distance maximale : ${distanceMax.toFixed(1)} km<br>
+    Trajet demandé : ${distanceTotale.toFixed(1)} km<br>
+    Faisable : ${faisable ? "OUI" : "NON"}
+  `;
+
+  details.innerHTML = `
+    ${modeTxt}<br>
+    Consommation retenue : ${conso.toFixed(4)} %/km<br>
+    Marge de sécurité : 10 %
+  `;
+}
+
+document.getElementById("passagers").addEventListener("input", calculate);
+document.getElementById("batterie").addEventListener("input", calculate);
+document.getElementById("mode").addEventListener("change", calculate);
+document.getElementById("distance").addEventListener("input", calculate);
+
+render();
+</script>
+
+<div id="saveModal" class="modal">
+  <div class="modal-card">
+    <h3>Sauvegarde des données</h3>
+
+    <p style="font-size:13px;color:#6b7280;margin:0 0 12px;">
+      Copie ce texte et conserve-le dans Notes, Mail ou Messages.
+    </p>
+
+    <textarea id="saveText" readonly></textarea>
+
+    <div class="modal-buttons">
+      <button class="primary" onclick="copySaveText()">Copier</button>
+      <button class="danger" onclick="closeSaveModal()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
